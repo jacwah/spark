@@ -14,6 +14,10 @@ class CheckList extends Component {
     this.inputRefs = {};
   }
 
+  componentDidMount() {
+    this.addItem();
+  }
+
   render() {
     return (
       <View>
@@ -21,7 +25,7 @@ class CheckList extends Component {
           data={this.state.items}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
-          ListHeaderComponent={<ListTitle value={this.state.title} onChange={(title) => this.setState({title: title})}/>}
+          ListHeaderComponent={<ListTitle value={this.state.title} onChangeText={(title) => this.setState({title: title})}/>}
           ListFooterComponent={<AddItemButton onAddItem={this.addItem.bind(this)}/>}
           renderItem={({item}) =>
             <CheckListItem
@@ -29,8 +33,9 @@ class CheckList extends Component {
               text={item.text}
               inputRef={this.inputRefs[item.key]}
               checked={item.checked}
+              doRemove={this.removeItem.bind(this, item.key)}
+              doAddItem={this.addItem.bind(this)}
               onChangeText={this.setText.bind(this, item.key)}
-              onRemove={this.removeItem.bind(this, item.key)}
               onCheckToggle={this.toggleChecked.bind(this, item.key)}
             />
           }
@@ -100,7 +105,7 @@ function ListTitle(props) {
       placeholder={'Title'}
       placeholderTextColor={'#b1b1b1'}
       value={props.value}
-      onChangeText={props.onChange}
+      onChangeText={props.onChangeText}
     />
   );
 }
@@ -128,7 +133,7 @@ class CheckListItem extends Component {
     let cross = null;
     if (this.state.removable)
       cross = (
-        <TouchableWithoutFeedback onPress={this.props.onRemove}>
+        <TouchableWithoutFeedback onPress={this.props.doRemove}>
           <Image source={crossImage}/>
         </TouchableWithoutFeedback>
       );
@@ -141,6 +146,10 @@ class CheckListItem extends Component {
           value={this.props.text}
           autoFocus={true}
           ref={this.props.inputRef}
+          // Avoid keyboard flashing, we will blur by changing focus anyway
+          blurOnSubmit={false}
+          onSubmitEditing={this.props.doAddItem}
+          onKeyPress={this.handleKeyPress.bind(this)}
           onChangeText={this.props.onChangeText}
           onFocus={() => this.setState({removable: true})}
           onBlur={() => this.setState({removable: false})}
@@ -148,6 +157,12 @@ class CheckListItem extends Component {
         {cross}
       </View>
     );
+  }
+
+  handleKeyPress({nativeEvent}) {
+    console.log("key press", nativeEvent.key);
+    if (nativeEvent.key === 'Backspace' && this.props.text.length === 0)
+      this.props.doRemove();
   }
 }
 
