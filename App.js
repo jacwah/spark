@@ -1,53 +1,108 @@
 import React, {Component} from 'react';
-import {TouchableOpacity, Image, Switch, TextInput,SafeAreaView, Platform, StyleSheet, Text, View, FlatList} from 'react-native';
+import {TouchableWithoutFeedback, TouchableOpacity, Image, Switch, TextInput,SafeAreaView, Platform, StyleSheet, Text, View, FlatList} from 'react-native';
 
 const checkImage = require('./check.jpeg');
 const uncheckImage = require('./uncheck.jpeg');
+const crossImage = require('./x.jpeg');
 
-class Checkmark extends Component {
-  state = {checked: false, focused: false}
-
-  onPress = () => {
-      this.setState(function(state) {
-        return {checked: state.checked ? false : true};
-      });
+class CheckList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {items: [{key: "1", text: "Hej", checked: true}, {key: "2", text: "Yo", checked: false}]};
   }
 
   render() {
-    let image = this.state.checked ? checkImage : uncheckImage;
     return (
-      <TouchableOpacity activeOpacity={0.5} onPress={this.onPress}>
-        <Image source={image}/>
-      </TouchableOpacity>
+      <View>
+        <FlatList
+          data={this.state.items}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({item}) =>
+            <CheckListItem
+              key={item.key}
+              text={item.text}
+              checked={item.checked}
+              onChangeText={this.setText.bind(this, item.key)}
+              onRemove={this.removeItem.bind(this, item.key)}
+              onCheckToggle={this.toggleChecked.bind(this, item.key)}
+            />
+          }
+        />
+      </View>
     );
+  }
+
+  mapCopiedItem(key, fn) {
+    this.setState(({items}) => ({items:
+      items.map((item) => {
+        if (item.key === key)
+          return fn({...item});
+        return item;
+      })
+    }));
+  }
+
+  setText(key, text) {
+    this.mapCopiedItem(key, (item) => {
+      item.text = text;
+      return item;
+    });
+  }
+
+  removeItem(key) {
+    this.setState(({items}) => ({items:
+      items.filter((item) => {
+        return item.key !== key;
+      })
+    }));
+  }
+
+  toggleChecked(key) {
+    this.mapCopiedItem(key, (item) => {
+      item.checked = !item.checked;
+      return item;
+    });
   }
 }
 
-const crossImage = require('./x.jpeg');
-
-class Item extends Component {
-  state = {text: '', checked: false}
-  
-  getOnFocus(focused) {
-    return function() {
-      this.setState(function(state) {
-        return {focused: focused};
-      });
-    }.bind(this);
+class CheckListItem extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {removable: false};
   }
 
   render() {
-    cross = null;
-    if (this.state.focused)
-      cross = (<Image source={crossImage} onPress={this.props.remove}/>);
+    let cross = null;
+    if (this.state.removable)
+      cross = (
+        <TouchableWithoutFeedback onPress={this.props.onRemove}>
+          <Image source={crossImage}/>
+        </TouchableWithoutFeedback>
+      );
+
     return (
       <View style={{flex: 0, flexDirection: 'row', justifyContent: 'flex-start', margin: 10}}>
-        <Checkmark style={{flex:1}}/>
-        <TextInput style={{flex: 1, marginLeft: 15, fontSize: 20}} placeholder={'hej'} onFocus={this.getOnFocus(true)} onBlur={this.getOnFocus(false)}/>
+        <Checkmark style={{flex:1}} onToggle={this.props.onCheckToggle} checked={this.props.checked}/>
+        <TextInput
+          style={{flex: 1, marginLeft: 15, fontSize: 20}}
+          value={this.props.text}
+          onChangeText={this.props.onChangeText}
+          onFocus={() => this.setState({removable: true})}
+          onBlur={() => this.setState({removable: false})}
+        />
         {cross}
       </View>
     );
   }
+}
+
+function Checkmark(props) {
+  let image = props.checked ? checkImage : uncheckImage;
+  return (
+    <TouchableOpacity activeOpacity={0.5} onPress={props.onToggle}>
+      <Image source={image}/>
+    </TouchableOpacity>
+  );
 }
 
 export default class App extends Component {
@@ -56,7 +111,7 @@ export default class App extends Component {
       <SafeAreaView style={{flex: 1}}>
         <View style={{flex: 1, margin: 20}}>
           <TextInput style={{fontWeight: 'bold', marginBottom: 20, fontSize: 30}} placeholder={'Title'} placeholderTextColor={'gray'}/>
-          <Item/>
+          <CheckList/>
         </View>
       </SafeAreaView>
     );
