@@ -15,7 +15,7 @@ class CheckList extends Component {
   }
 
   componentDidMount() {
-    this.addItem();
+    this.addItemAfter(null);
   }
 
   render() {
@@ -26,7 +26,7 @@ class CheckList extends Component {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           ListHeaderComponent={<ListTitle value={this.state.title} onChangeText={(title) => this.setState({title: title})}/>}
-          ListFooterComponent={<AddItemButton onAddItem={this.addItem.bind(this)}/>}
+          ListFooterComponent={<AddItemButton onAddItem={this.addItemAfter.bind(this, null)}/>}
           renderItem={({item}) =>
             <CheckListItem
               key={item.key}
@@ -34,7 +34,7 @@ class CheckList extends Component {
               inputRef={this.inputRefs[item.key]}
               checked={item.checked}
               doRemove={this.removeItem.bind(this, item.key)}
-              doAddItem={this.addItem.bind(this)}
+              doAddItem={this.addItemAfter.bind(this, item.key)}
               onChangeText={this.setText.bind(this, item.key)}
               onCheckToggle={this.toggleChecked.bind(this, item.key)}
             />
@@ -44,12 +44,23 @@ class CheckList extends Component {
     );
   }
 
-  addItem() {
+  createItem() {
+    let key = this.nextKey++;
+    key = key.toString();
+    this.inputRefs[key] = React.createRef();
+    return {key: key, text: '', checked: false};
+  }
+
+  addItemAfter(keyOrNull) {
     this.setState(({items}) => {
-      let key = this.nextKey++;
-      key = key.toString();
-      this.inputRefs[key] = React.createRef();
-      return {items: [...items, {key: key, text: '', checked: false}]};
+      const item = this.createItem();
+      items = items.slice();
+      const afterIndex = items.findIndex((item) => item.key === keyOrNull);
+      if (afterIndex < 0)
+        items.push(item);
+      else
+        items.splice(afterIndex + 1, 0, item);
+      return {items: items};
     });
   }
 
@@ -160,7 +171,6 @@ class CheckListItem extends Component {
   }
 
   handleKeyPress({nativeEvent}) {
-    console.log("key press", nativeEvent.key);
     if (nativeEvent.key === 'Backspace' && this.props.text.length === 0)
       this.props.doRemove();
   }
