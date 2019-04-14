@@ -6,14 +6,14 @@ import {styles} from '../styles';
 export default function CheckListRow(props) {
   return (
     <View style={styles.checkListRow}>
-        <View style={{width: 32, height: 32, flex: 0, justifyContent: 'center', alignItems: 'center'}}>
+        <View style={styles.checkListRowEnd}>
           {props.before}
         </View>
         <View style={{flex: 1, marginLeft: 15}}>
           {props.children}
         </View>
         {props.after &&
-          <View style={{width: 32, height: 32, flex: 0, justifyContent: 'center', alignItems: 'center'}}>
+          <View style={styles.checkListRowEnd}>
             {props.after}
           </View>
         }
@@ -22,8 +22,19 @@ export default function CheckListRow(props) {
 }
 
 CheckListRow.propTypes = {
+  /**
+   * Main content of the row.
+   */
   children: PropTypes.node.isRequired,
+
+  /**
+   * A small element before the main content.
+   */
   before: PropTypes.node.isRequired,
+
+  /**
+   * A small element after the main content.
+   */
   after: PropTypes.node,
 };
 

@@ -9,9 +9,26 @@ export default class CheckList extends React.Component {
 
   constructor(props) {
     super(props);
+
+    this.state = {
+      /**
+       * List of items in the list.
+       * {key: string, text: string, checked: bool}
+       */
+
+      items: [],
+      /**
+       * The list's title.
+       */
+      title: ''
+    };
+
+    // Used to give items monotonically increasing keys.
     this.nextKey = 1;
-    this.state = {items: [], title: ''};
     this.inputRefs = {};
+
+    this.addItemLast = this.addItemAfter.bind(this, null);
+    this.setTitle = this.setTitle.bind(this);
   }
 
   componentDidMount() {
@@ -29,10 +46,10 @@ export default class CheckList extends React.Component {
           ListHeaderComponent={
             <ListTitle
               value={this.state.title}
-              onChangeText={(title) => this.setState({title: title})}/>
+              onChangeText={this.setTitle}/>
           }
           ListFooterComponent={
-            <AddItemRow style={{backgroundColor: 'red'}} onAddItem={this.addItemAfter.bind(this, null)}/>
+            <AddItemRow onAddItem={this.addItemLast}/>
           }
           renderItem={({item}) =>
             <CheckListItem
@@ -40,13 +57,19 @@ export default class CheckList extends React.Component {
               text={item.text}
               inputRef={this.inputRefs[item.key]}
               checked={item.checked}
-              doRemove={this.removeItemAndFocusPrevious.bind(this, item.key)}
-              doAddItem={this.addItemAfter.bind(this, item.key)}
-              onChangeText={this.setText.bind(this, item.key)}
-              onCheckToggle={this.toggleChecked.bind(this, item.key)}/>
+              // I would like to remove these binds, but none of the
+              // alternatives seem as nice.
+              onRemove={this.removeItemAndFocusPrevious.bind(this, item.key)}
+              onAddItem={this.addItemAfter.bind(this, item.key)}
+              onCheckToggle={this.toggleChecked.bind(this, item.key)}
+              onChangeText={this.setText.bind(this, item.key)}/>
           }/>
       </View>
     );
+  }
+
+  setTitle(title) {
+    this.setState({title: title});
   }
 
   createItem() {

@@ -8,6 +8,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     margin: 10,
   },
+  checkListRowEnd: {
+    width: 32,
+    height: 32,
+    flex: 0,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   titleText: {
     fontSize: 30,
     fontWeight: 'bold'
