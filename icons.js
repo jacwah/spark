@@ -1,6 +1,6 @@
 export default {
-  checked: require('./check.jpeg'),
-  unchecked: require('./uncheck.jpeg'),
-  remove: require('./x.jpeg'),
-  add: require('./+.jpeg'),
+  checked: require('./assets/check.jpeg'),
+  unchecked: require('./assets/uncheck.jpeg'),
+  remove: require('./assets/x.jpeg'),
+  add: require('./assets/+.jpeg'),
 };
