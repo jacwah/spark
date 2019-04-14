@@ -9,7 +9,7 @@ export default function AddItemRow(props) {
   return (
     <TouchableWithoutFeedback onPress={props.onAddItem}>
       <View>
-        <CheckListRow before={<Image source={icons.add}/>}>
+        <CheckListRow before={<Image style={styles.icon} source={icons.add}/>}>
           <Text style={{color: colors.subdued, ...styles.defaultText}}>Add item</Text>
         </CheckListRow>
       </View>

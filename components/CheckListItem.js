@@ -55,12 +55,11 @@ export default class CheckListItem extends React.Component {
     if (this.state.removable)
       remove = (
         <TouchableWithoutFeedback onPress={this.props.onRemove}>
-          <Image source={icons.remove}/>
+          <Image style={styles.icon} source={icons.remove}/>
         </TouchableWithoutFeedback>
       );
     const check = (
       <Checkmark
-        style={{flex:1}}
         onToggle={this.props.onCheckToggle}
         checked={this.props.checked}/>
     );
@@ -68,7 +67,7 @@ export default class CheckListItem extends React.Component {
     return (
       <CheckListRow before={check} after={remove}>
         <TextInput
-          style={styles.defaultText}
+          style={{padding: 0, ...styles.defaultText}}
           value={this.props.text}
           autoFocus={true}
           ref={this.props.inputRef}

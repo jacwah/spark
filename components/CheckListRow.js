@@ -9,7 +9,7 @@ export default function CheckListRow(props) {
         <View style={styles.checkListRowEnd}>
           {props.before}
         </View>
-        <View style={{flex: 1, marginLeft: 15}}>
+        <View style={{flex: 1, marginLeft: 12}}>
           {props.children}
         </View>
         {props.after &&

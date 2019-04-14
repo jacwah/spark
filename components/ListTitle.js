@@ -6,7 +6,7 @@ import {styles} from '../styles';
 export default function ListTitle(props) {
   return (
     <TextInput
-      style={{marginBottom: 20, marginTop: 20, ...styles.titleText}}
+      style={{marginVertical: 16, padding: 0, ...styles.titleText}}
       placeholder={'Title'}
       placeholderTextColor={'#b1b1b1'}
       value={props.value}

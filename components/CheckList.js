@@ -37,7 +37,7 @@ export default class CheckList extends React.Component {
 
   render() {
     return (
-      <View>
+      <View style={{flex: 1}}>
         <FlatList
           data={this.state.items}
           // Without this remove taps are ignored
@@ -59,7 +59,7 @@ export default class CheckList extends React.Component {
               checked={item.checked}
               // I would like to remove these binds, but none of the
               // alternatives seem as nice.
-              onRemove={this.removeItemAndFocusPrevious.bind(this, item.key)}
+              onRemove={this.removeItemAndFocusNext.bind(this, item.key)}
               onAddItem={this.addItemAfter.bind(this, item.key)}
               onCheckToggle={this.toggleChecked.bind(this, item.key)}
               onChangeText={this.setText.bind(this, item.key)}/>
@@ -117,12 +117,12 @@ export default class CheckList extends React.Component {
     });
   }
 
-  removeItemAndFocusPrevious(key) {
+  removeItemAndFocusNext(key) {
     let nextFocus = null;
     this.setState(({items}) => ({items:
       items.filter((item, index) => {
         if (item.key === key) {
-          nextFocus = index - 1;
+          nextFocus = index;
           return false;
         }
         return true;
@@ -130,8 +130,8 @@ export default class CheckList extends React.Component {
     }), () => {
       delete this.inputRefs[key];
       if (this.state.items.length > 0) {
-        if (nextFocus < 0)
-          nextFocus = 0;
+        if (nextFocus >= this.state.items.length)
+          nextFocus = this.state.items.length - 1;
         const ref = this.inputRefs[this.state.items[nextFocus].key];
         ref.current.focus();
       }
