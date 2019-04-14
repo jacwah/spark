@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, TouchableOpacity, Image, Switch, TextInput,SafeAreaView, Platform, StyleSheet, Text, View, FlatList} from 'react-native';
-
-const checkImage = require('./check.jpeg');
-const uncheckImage = require('./uncheck.jpeg');
-const crossImage = require('./x.jpeg');
-const plusImage = require('./+.jpeg');
+import {TouchableWithoutFeedback, TouchableOpacity, Image, TextInput, SafeAreaView, Text, View, FlatList} from 'react-native';
+import icons from './icons';
+import {styles, colors} from './styles';
+import PropTypes from 'prop-types';
 
 class CheckList extends Component {
   constructor(props) {
@@ -23,23 +21,28 @@ class CheckList extends Component {
       <View>
         <FlatList
           data={this.state.items}
+          // Without this remove taps are ignored
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
-          ListHeaderComponent={<ListTitle value={this.state.title} onChangeText={(title) => this.setState({title: title})}/>}
-          ListFooterComponent={<AddItemButton onAddItem={this.addItemAfter.bind(this, null)}/>}
+          ListHeaderComponent={
+            <ListTitle
+              value={this.state.title}
+              onChangeText={(title) => this.setState({title: title})}/>
+          }
+          ListFooterComponent={
+            <AddItemRow onAddItem={this.addItemAfter.bind(this, null)}/>
+          }
           renderItem={({item}) =>
             <CheckListItem
               key={item.key}
               text={item.text}
               inputRef={this.inputRefs[item.key]}
               checked={item.checked}
-              doRemove={this.removeItem.bind(this, item.key)}
+              doRemove={this.removeItemAndFocusPrevious.bind(this, item.key)}
               doAddItem={this.addItemAfter.bind(this, item.key)}
               onChangeText={this.setText.bind(this, item.key)}
-              onCheckToggle={this.toggleChecked.bind(this, item.key)}
-            />
-          }
-        />
+              onCheckToggle={this.toggleChecked.bind(this, item.key)}/>
+          }/>
       </View>
     );
   }
@@ -51,6 +54,7 @@ class CheckList extends Component {
     return {key: key, text: '', checked: false};
   }
 
+  // null to add at end
   addItemAfter(keyOrNull) {
     this.setState(({items}) => {
       const item = this.createItem();
@@ -81,7 +85,14 @@ class CheckList extends Component {
     });
   }
 
-  removeItem(key) {
+  toggleChecked(key) {
+    this.mapCopiedItem(key, (item) => {
+      item.checked = !item.checked;
+      return item;
+    });
+  }
+
+  removeItemAndFocusPrevious(key) {
     let nextFocus = null;
     this.setState(({items}) => ({items:
       items.filter((item, index) => {
@@ -96,15 +107,9 @@ class CheckList extends Component {
       if (this.state.items.length > 0) {
         if (nextFocus < 0)
           nextFocus = 0;
-        this.inputRefs[this.state.items[nextFocus].key].current.focus();
+        const ref = this.inputRefs[this.state.items[nextFocus].key];
+        ref.current.focus();
       }
-    });
-  }
-
-  toggleChecked(key) {
-    this.mapCopiedItem(key, (item) => {
-      item.checked = !item.checked;
-      return item;
     });
   }
 }
@@ -112,7 +117,7 @@ class CheckList extends Component {
 function ListTitle(props) {
   return (
     <TextInput
-      style={{fontWeight: 'bold', marginBottom: 20, marginTop: 20, fontSize: 30}}
+      style={{marginBottom: 20, marginTop: 20, ...styles.titleText}}
       placeholder={'Title'}
       placeholderTextColor={'#b1b1b1'}
       value={props.value}
@@ -121,18 +126,48 @@ function ListTitle(props) {
   );
 }
 
-function AddItemButton(props) {
+ListTitle.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChangeText: PropTypes.func.isRequired,
+};
+
+function CheckListRow(props) {
+  return (
+    <View style={styles.checkListRow}>
+        <View style={{width: 32, height: 32, flex: 0, justifyContent: 'center', alignItems: 'center'}}>
+          {props.before}
+        </View>
+        <View style={{flex: 1, marginLeft: 15}}>
+          {props.children}
+        </View>
+        {props.after &&
+          <View style={{width: 32, height: 32, flex: 0, justifyContent: 'center', alignItems: 'center'}}>
+            {props.after}
+          </View>
+        }
+    </View>
+  );
+}
+
+CheckListRow.propTypes = {
+  children: PropTypes.node.isRequired,
+  before: PropTypes.node.isRequired,
+  after: PropTypes.node,
+};
+
+function AddItemRow(props) {
   return (
     <TouchableWithoutFeedback onPress={props.onAddItem}>
-      <View style={{flex: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', margin: 10}}>
-        <View style={{width: 32, height: 32, flex: 0, justifyContent: 'center', alignItems: 'center'}}>
-          <Image source={plusImage} style={{flex: 0}}/>
-        </View>
-        <Text style={{flex: 1, marginLeft: 15, fontSize: 20, color: '#b1b1b1'}}>Add item</Text>
-      </View>
+      <CheckListRow before={<Image source={icons.add}/>}>
+        <Text style={{color: colors.subdued, ...styles.defaultText}}>Add item</Text>
+      </CheckListRow>
     </TouchableWithoutFeedback>
   );
 }
+
+AddItemRow.propTypes = {
+  onAddItem: PropTypes.func.isRequired,
+};
 
 class CheckListItem extends Component {
   constructor(props) {
@@ -141,19 +176,24 @@ class CheckListItem extends Component {
   }
 
   render() {
-    let cross = null;
+    let remove = null;
     if (this.state.removable)
-      cross = (
+      remove = (
         <TouchableWithoutFeedback onPress={this.props.doRemove}>
-          <Image source={crossImage}/>
+          <Image source={icons.remove}/>
         </TouchableWithoutFeedback>
       );
+    const check = (
+      <Checkmark
+        style={{flex:1}}
+        onToggle={this.props.onCheckToggle}
+        checked={this.props.checked}/>
+    );
 
     return (
-      <View style={{flex: 0, flexDirection: 'row', justifyContent: 'flex-start', margin: 10}}>
-        <Checkmark style={{flex:1}} onToggle={this.props.onCheckToggle} checked={this.props.checked}/>
+      <CheckListRow before={check} after={remove}>
         <TextInput
-          style={{flex: 1, marginLeft: 15, fontSize: 20}}
+          style={styles.defaultText}
           value={this.props.text}
           autoFocus={true}
           ref={this.props.inputRef}
@@ -163,10 +203,8 @@ class CheckListItem extends Component {
           onKeyPress={this.handleKeyPress.bind(this)}
           onChangeText={this.props.onChangeText}
           onFocus={() => this.setState({removable: true})}
-          onBlur={() => this.setState({removable: false})}
-        />
-        {cross}
-      </View>
+          onBlur={() => this.setState({removable: false})}/>
+      </CheckListRow>
     );
   }
 
@@ -176,14 +214,30 @@ class CheckListItem extends Component {
   }
 }
 
+CheckListItem.propTypes = {
+  text: PropTypes.string.isRequired,
+  onChangeText: PropTypes.func.isRequired,
+  checked: PropTypes.bool.isRequired,
+  onCheckToggle: PropTypes.func.isRequired,
+  doRemove: PropTypes.func.isRequired,
+  doAddItem: PropTypes.func.isRequired,
+  inputRef: PropTypes.any.isRequired,
+};
+
+
 function Checkmark(props) {
-  let image = props.checked ? checkImage : uncheckImage;
+  let icon = props.checked ? icons.checked : icons.unchecked;
   return (
     <TouchableOpacity activeOpacity={0.5} onPress={props.onToggle}>
-      <Image source={image}/>
+      <Image source={icon}/>
     </TouchableOpacity>
   );
 }
+
+Checkmark.propTypes = {
+  checked: PropTypes.bool.isRequired,
+  onToggle: PropTypes.func.isRequired,
+};
 
 export default class App extends Component {
   render() {
@@ -196,12 +250,3 @@ export default class App extends Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    margin: 20,
-  },
-  text: {
-    fontSize: 30
-  },
-});
