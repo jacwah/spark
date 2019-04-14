@@ -29,9 +29,14 @@ export default class CheckListItem extends React.Component {
     onCheckToggle: PropTypes.func.isRequired,
 
     /**
-     * Called to remove this item.
+     * Called to remove this item. Focus is shifted backwards.
      */
-    onRemove: PropTypes.func.isRequired,
+    onRemoveBackwards: PropTypes.func.isRequired,
+
+    /**
+     * Called to remove this item. Focus is shifted forwards.
+     */
+    onRemoveForwards: PropTypes.func.isRequired,
 
     /**
      * Called to add a new item to the same list.
@@ -54,7 +59,7 @@ export default class CheckListItem extends React.Component {
     let remove = null;
     if (this.state.removable)
       remove = (
-        <TouchableWithoutFeedback onPress={this.props.onRemove}>
+        <TouchableWithoutFeedback onPress={this.props.onRemoveForwards}>
           <Image style={styles.icon} source={icons.remove}/>
         </TouchableWithoutFeedback>
       );
@@ -84,6 +89,6 @@ export default class CheckListItem extends React.Component {
 
   handleKeyPress({nativeEvent}) {
     if (nativeEvent.key === 'Backspace' && this.props.text.length === 0)
-      this.props.onRemove();
+      this.props.onRemoveBackwards();
   }
 }
